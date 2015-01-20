@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util
+END
+gpr.m
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/gpr.m
+END
+solve_chol.m
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/solve_chol.m
+END
+binaryLaplaceGP.m
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/binaryLaplaceGP.m
+END
+lbfgsb.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/lbfgsb.m
+END
+rewrap.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/rewrap.m
+END
+minimize_lbfgsb.m
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/minimize_lbfgsb.m
+END
+binaryEPGP.m
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/binaryEPGP.m
+END
+minimize_lbfgsb_objfun.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/minimize_lbfgsb_objfun.m
+END
+elsympol.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/elsympol.m
+END
+minimize_lbfgsb_gradfun.m
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/minimize_lbfgsb_gradfun.m
+END
+sq_dist.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/sq_dist.m
+END
+binaryGP.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/binaryGP.m
+END
+unwrap.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/unwrap.m
+END
+make.m
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/make.m
+END
+brentmin.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/brentmin.m
+END
+minimize.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/minimize.m
+END
+solve_chol.c
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/util/solve_chol.c
+END

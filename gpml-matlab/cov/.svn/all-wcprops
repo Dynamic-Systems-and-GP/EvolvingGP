@@ -1,0 +1,131 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov
+END
+covNoise.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covNoise.m
+END
+covNNone.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covNNone.m
+END
+covLIN.m
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covLIN.m
+END
+covSEiso.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covSEiso.m
+END
+covPoly.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covPoly.m
+END
+covLINone.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covLINone.m
+END
+covFITC.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covFITC.m
+END
+covConst.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covConst.m
+END
+covScale.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covScale.m
+END
+covADD.m
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covADD.m
+END
+covPPiso.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covPPiso.m
+END
+covMask.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covMask.m
+END
+covRQiso.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covRQiso.m
+END
+covPeriodic.m
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covPeriodic.m
+END
+covSEard.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covSEard.m
+END
+covMaterniso.m
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covMaterniso.m
+END
+covProd.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covProd.m
+END
+covSum.m
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covSum.m
+END
+covSEisoU.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covSEisoU.m
+END
+covRQard.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covRQard.m
+END
+covLINard.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/gpdyn/!svn/ver/5/trunk/GPdyn/gpml-matlab/cov/covLINard.m
+END
