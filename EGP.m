@@ -60,10 +60,10 @@ methods
 	end
 	
 	function include(self,k)
-		self.signals.k=k;
+        N=length(k);
 		try
-			x=self.signals.getRegressorVectors();
-			t=self.signals.getRegressand();
+			x=self.signals.getRegressorVectors(k);
+			t=self.signals.getRegressand(k);
 		catch err
 			if strcmp(err.identifier,'SignalsModel:InvalidSignalIndex')
                 warning('regressors not avaliable.');
@@ -72,22 +72,14 @@ methods
 				rethrow(err);
 			end
 		end
-		self.BVi(end+1,:)=x;
-		self.BVt(end+1,:)=t;
-		self.BVtst(end+1,:)=k;
+		self.BVi(end+1:end+N,:)=x;
+		self.BVt(end+1:end+N,:)=t;
+		self.BVtst(end+1:end+N,:)=k;
 		self.size=size(self.BVi,1);
 	end
-	
-	function [ymu,ys2]=predict(self,k)
-        if self.size==0 ymu=Inf;ys2=Inf; return; end
-		k=k(:);
-		post=self.post;
-		cov=self.cov;
-		mean=self.mean;
-		hyp=self.hyp;
-		lik=self.lik;
-		x=self.BVi;
-		try
+	function [ymu,ys2]=predictAt(self,k)
+        k=k(:);
+        try
 			xs=self.signals.getRegressorVectors(k);
 		catch err
 			if strcmp(err.identifier,'SignalsModel:InvalidSignalIndex')
@@ -96,7 +88,18 @@ methods
 			else
 				rethrow(err);
 			end
-		end
+        end
+        [ymu,ys2]=predict(self,xs);
+    end
+        
+	function [ymu,ys2]=predict(self,xs)
+        if self.size==0 ymu=Inf;ys2=Inf; return; end
+		post=self.post;
+		cov=self.cov;
+		mean=self.mean;
+		hyp=self.hyp;
+		lik=self.lik;
+		x=self.BVi;
 		
 		try
 			%beware, the following code is partially modified from gp.m [Copyright (c) 
