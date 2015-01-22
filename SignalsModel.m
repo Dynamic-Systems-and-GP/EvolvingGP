@@ -1,4 +1,4 @@
-classdef SignalsModel < dynamicprops & matlab.mixin.Copyable
+classdef SignalsModel < dynamicprops
 
 properties(GetAccess=public,SetAccess=public)	
 	time;
@@ -90,6 +90,21 @@ methods
 		self.Noutputs=1;
     end
     
+    function new = copy(self)
+         % Copy super_prop
+         new = feval(class(self),self.maxk);
+         % Copy sub_prop1 in subclass
+         % Assignment can introduce side effects
+         new.setInputs(cell2struct(self.Ilags,self.I,2));
+         new.setOutput(self.O);
+         
+         for i=1:length(self.I)
+            signame=self.I{i};
+            new.(signame)=self.(signame);
+         end
+         new.time=self.time;
+		 new.k=self.k;
+    end
     %
     %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    

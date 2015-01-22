@@ -1,4 +1,4 @@
-classdef EGP < matlab.mixin.Copyable
+classdef EGP < handle
 
 properties(GetAccess=public,SetAccess=public)
 
@@ -267,8 +267,18 @@ methods
 		[~,sid]=sort(s,'descend');
 		informationGain=informationGain(sid,:);		
     end
-    
-end
+    function new = copy(self)
+         % Copy super_prop
+         new = feval(class(self),self.signals);
+         
+         % Copy all non-hidden properties.
+         p = properties(self);
+         for i = 1:length(p)
+             new.(p{i}) = self.(p{i});
+         end
+         new.signals = self.signals.copy();
+    end
+    end
 
 
 end
