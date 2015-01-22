@@ -1,4 +1,4 @@
-classdef SignalsModel < dynamicprops
+classdef SignalsModel < dynamicprops & matlab.mixin.Copyable
 
 properties(GetAccess=public,SetAccess=public)	
 	time;
@@ -88,6 +88,10 @@ methods
 		end
 		self.O=output;
 		self.Noutputs=1;
-	end
+    end
+    
+    %
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 end
 end

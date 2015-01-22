@@ -1,4 +1,4 @@
-classdef EGP < handle
+classdef EGP < matlab.mixin.Copyable
 
 properties(GetAccess=public,SetAccess=public)
 
@@ -60,6 +60,7 @@ methods
 	end
 	
 	function include(self,k)
+        k=k(:);
         N=length(k);
 		try
 			x=self.signals.getRegressorVectors(k);
@@ -267,26 +268,6 @@ methods
 		informationGain=informationGain(sid,:);		
     end
     
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %utilities:
-    %
-    %
-    function new = copy(this)
-        % Instantiate new object of the same class.
-        new = feval(class(this));
-
-        % Copy all non-hidden properties.
-        p = properties(this);
-        for i = 1:length(p)
-            new.(p{i}) = this.(p{i});
-        end
-    end        
-    
-    
-    %
-    %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
 
