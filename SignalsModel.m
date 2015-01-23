@@ -103,6 +103,38 @@ methods
 		self.Noutputs=1;
     end
     
+    function newk=isDataDefinedAt(self,k,varargin)
+       if nargin==2
+           warntype=varargin{1}; % warning, error or quiet
+       else
+           warntype='warning';
+       end
+       k=k(:);
+       
+        shortk=(k<=self.maxlag);
+        if any(shortk)
+           self.(warntype)('SignalsModel:InvalidSignalIndex','Too small time-step. The regressor vector requires lagged values at/before time-step k=0');
+        end
+        
+        k=k(~shortk);
+        
+		n=length(k);
+		d=NaN(n,self.Nregressors+1);
+		j=1;
+        for i=1:self.Ninputs
+            nr=numel(self.Ilags{i});
+            d(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
+            j=j+nr;
+        end
+        d(:,end)=self.(self.O)(k);
+        dsum=sum(d,2);
+        nank=isnan(dsum);
+        if any(nank)>0
+            self.(warntype)('SignalsModel:InvalidSignalIndex','Invalid regressor values.');
+        end
+        newk=k(~nank);
+    end
+    
     function updateStatMoments(self)
        %select only signal segments without NaN values
        for i=1:self.Ninputs
@@ -129,6 +161,16 @@ methods
          new.mean=self.mean;
          new.std=self.std;
          new.normalize=self.normalize;
+    end
+    
+    function quiet(self,id,msg)
+        %empty function: is a quiet function, it isn't?
+    end
+    function warning(self,id,msg)
+        warning(id,msg);
+    end
+    function error(self,id,msg)
+        error(id,msg);
     end
     %
     %

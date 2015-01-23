@@ -62,10 +62,10 @@ methods
 	function include(self,k)
         k=k(:);
         
-        k=self.signals.isDataDefinedAt(k,'warning');
+          self.signals.getRegressorVectors(k);
         x=self.signals.getRegressorVectors(k);
         t=self.signals.getRegressand(k);
-        N=length(k);
+        N=length(t);
         
 		self.BVi(end+1:end+N,:)=x;
 		self.BVt(end+1:end+N,:)=t;

@@ -14,8 +14,9 @@ properties
 	O='';
 	Ninputs;
 	Noutputs;
-    mu;
-    sd;
+    mean;
+    std;
+    normalize;
 end
 
 methods
@@ -23,6 +24,9 @@ methods
 		self.maxk=N;
 		self.time=NaN(N,1);
 		self.k=1;
+        self.normalize=1;
+        self.mean=struct;
+        self.std=struct;
 		%~ Nn=length(signalnames)
 		%~ for i=1:Nn
 			%~ addprop(self,signalnames{i});
@@ -41,7 +45,7 @@ methods
             nr=numel(self.Ilags{i});
             x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
             if self.normalize==1
-                x(:,j:j+nr-1)=(x(:,j:j+nr-1)-self.mu.(self.I{i}))./self.sd.(self.I{i});
+                x(:,j:j+nr-1)=(x(:,j:j+nr-1)-self.mean.(self.I{i}))./self.std.(self.I{i});
             end
             j=j+nr;
         end
@@ -55,7 +59,9 @@ methods
 		k=k(:);
 		n=length(k);
 		t=self.(self.O)(k);
-        
+        if self.normalize==1
+            t=(t-self.mean.(self.O))./self.std.(self.O);
+        end
         if any(isnan(t))
             error('SignalsModel:InvalidSignalIndex','Invalid regressor values.');
         end
@@ -78,6 +84,8 @@ methods
 			self.I{i}=signalnames{i};
 			self.Ilags{i}=signaldelays{i};
 			self.(signalnames{i})=NaN(self.maxk,1);
+            self.mean.(signalnames{i})=0;
+            self.std.(signalnames{i}) =0;
 		end
 		self.Ninputs=Nin;
 		self.maxlag=max([self.Ilags{:}]);
@@ -95,14 +103,47 @@ methods
 		self.Noutputs=1;
     end
     
+    function indices=isDataDefinedAt(k,varargin)
+       if nargin==2: 
+           warntype=varargin{1}; % warning, error or quiet
+       else
+           warntype='warning';
+       end
+       k=k(:);
+       
+        shortk=(k<=self.maxlag);
+        if any(shortk)
+           self.(warntype)('SignalsModel:InvalidSignalIndex','Too small time-step. The regressor vector requires lagged values at/before time-step k=0');
+        end
+        k(shortk)=[];
+
+		n=length(k);
+		d=NaN(n,self.Nregressors+1);
+		j=1;
+        for i=1:self.Ninputs
+            nr=numel(self.Ilags{i});
+            d(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
+            j=j+nr;
+        end
+        d(:,end)=self.(self.O)(k);
+        dsum=sum(d,2);
+        nank=isnan(dsum);
+        if any(nank)>0
+            self.(warntype)('SignalsModel:InvalidSignalIndex','Invalid regressor values.');
+        end
+        
+        indices= (~nank)|(~)
+        return indices;
+       
+    end
+    
     function updateStatMoments(self)
        %select only signal segments without NaN values
        for i=1:self.Ninputs
            notNaNs=~isnan(self.(self.I{i}));
-           self.mu=mean(notNaNs);
-           self.var=
+           self.mean.(self.I{i})=mean(self.(self.I{i})(notNaNs));
+           self.std.(self.I{i})=std(self.(self.I{i})(notNaNs));
        end
-       
     end
     
     function new = copy(self)
@@ -119,6 +160,19 @@ methods
          end
          new.time=self.time;
 		 new.k=self.k;
+         new.mean=self.mean;
+         new.std=self.std;
+         new.normalize=self.normalize;
+    end
+    
+    function quiet(self,varargin)
+        %empty function: is a quiet function, it isn't?
+    end
+    function warning(self,varargin)
+        warning(varargin);
+    end
+    function error(self,varargin)
+        error(varargin);
     end
     %
     %
