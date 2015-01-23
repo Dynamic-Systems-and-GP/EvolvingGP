@@ -146,7 +146,10 @@ methods
 				% end
 				nact = id(end);          % set counter to index of last processed data point
 			  end
-		end
+        end
+        
+        ymu=ymu*self.signals.std.(self.signals.O)+self.signals.mean.(self.signals.O);
+        ys2=ys2*(self.signals.std.(self.signals.O)^2);
 	end
 	
 	function optimizePrior(self)
