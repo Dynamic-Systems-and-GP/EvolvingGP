@@ -85,7 +85,7 @@ methods
 			self.Ilags{i}=signaldelays{i};
 			self.(signalnames{i})=NaN(self.maxk,1);
             self.mean.(signalnames{i})=0;
-            self.std.(signalnames{i}) =0;
+            self.std.(signalnames{i}) =1;
 		end
 		self.Ninputs=Nin;
 		self.maxlag=max([self.Ilags{:}]);
@@ -117,6 +117,10 @@ methods
         end
         
         k=k(~shortk);
+        if isempty(k)
+           newk=[]; %=k
+           return;
+        end
         
 		n=length(k);
 		d=NaN(n,self.Nregressors+1);

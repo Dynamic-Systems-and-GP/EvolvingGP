@@ -41,12 +41,7 @@ methods
 
 	function resetActiveSet(self,default)    
        k=self.BVtst;
-       self.BVi=[];
-       self.BVt=[];
-       self.BVtst=[];
-       
-       self.include(k);
-       %self.inferPosterior();
+       self.
     end
     
 	function resetPrior(self,default)
