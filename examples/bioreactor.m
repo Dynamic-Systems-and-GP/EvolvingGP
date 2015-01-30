@@ -1,6 +1,6 @@
 % PROCESS -----------
 %select a process to work with: (but it's not limited to the predefined process classes)
-proc=bioreaktor_model(0.5);
+proc=bioreactor_icecream(0.5);
 proc.noisestd=1e-3;
 u=proc.getidentsignal();
 proc.init();
