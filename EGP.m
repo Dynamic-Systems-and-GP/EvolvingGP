@@ -36,7 +36,7 @@ methods
 		self.forgetting.factor=1;
 		self.forgetting.type='none';
 		self.reducing.maxSize=100;
-		self.reducing.type='window';
+		self.reducing.type='windowing';
     end
 
 	function resetActiveSet(self,default)    
@@ -173,11 +173,13 @@ methods
 		if isempty(self.BVi) return; end
 		exceededSize=self.size-self.reducing.maxSize;
 		if exceededSize>0
-			if nargin==1 informationGain=self.getInformationGain();	end
-			informationGain=self.applyForgetting(informationGain);		
+            if nargin==1 
+                informationGain=self.getInformationGain();
+                informationGain=self.applyForgetting(informationGain);
+            end
 			timestamps=informationGain(end-exceededSize+1:end,2);
 			id=NaN(exceededSize,1);
-			for i=1:length(exceededSize)
+			for i=1:exceededSize
 				id(i)=find(self.BVtst==timestamps(i));
 			end
 			self.BVi(id,:)	=	[];
