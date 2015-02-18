@@ -268,12 +268,12 @@ methods
 		
 		%shift information gain to be equal or greater than 0
 		informationGain(:,1)=informationGain(:,1)-min(informationGain(:,1));
-		timestampnow=max(informationGain(:,2));
+		timestampnow=max(informationGain(:,2))
 		switch self.forgetting.type
 			case 'linear'
-				s=informationGain(:,1)-self.forgetting.factor*(timestampnow-informationGain(:,2));
+				s=informationGain(:,1)-self.forgetting.factor.*(timestampnow-informationGain(:,2));
 			case 'exponential'
-				s=informationGain(:,1)*self.forgetting.factor^(timestampnow-informationGain(:,2));
+				s=informationGain(:,1).*self.forgetting.factor.^(timestampnow-informationGain(:,2));
 			case 'none'
 				s=informationGain(:,1);
 		end
