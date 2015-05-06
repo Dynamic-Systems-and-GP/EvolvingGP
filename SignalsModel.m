@@ -36,6 +36,7 @@ methods
 	
 	function [x]=getRegressorVectors(self,k)
 		if nargin==1 k=self.k; end;
+        if isempty(k) error('SignalsModel:getRegressorVectors','Empty time-step vector k'); return; end;
 		assert(min(k)>self.maxlag,'SignalsModel:InvalidSignalIndex','Too small time-step. The regressor vector requires lagged values at/before time-step k=0');
 		k=k(:);
 		n=length(k);
@@ -98,13 +99,17 @@ methods
 		if ~isprop(self,output)
 			addprop(self,output);
 			self.(output)=NaN(self.maxk,1);
+            self.mean.(output)=0;
+            self.std.(output) =1;
 		end
 		self.O=output;
 		self.Noutputs=1;
     end
     
-    function newk=isDataDefinedAt(self,k,varargin)
-       if nargin==2
+    function [regressorVector_mask,regressand_mask]=filterUndefinedDataAt(self,k,varargin)
+        regressorVector_mask=[];
+        regressand_mask=[];
+       if nargin==3
            warntype=varargin{1}; % warning, error or quiet
        else
            warntype='warning';
@@ -116,27 +121,33 @@ methods
            self.(warntype)('SignalsModel:InvalidSignalIndex','Too small time-step. The regressor vector requires lagged values at/before time-step k=0');
         end
         
-        k=k(~shortk);
-        if isempty(k)
-           newk=[]; %=k
+        k1=k(~shortk);
+        if isempty(k1)
+           k2=[]; %=k
            return;
         end
         
-		n=length(k);
-		d=NaN(n,self.Nregressors+1);
+		n=length(k1);
+		x=NaN(n,self.Nregressors);
 		j=1;
         for i=1:self.Ninputs
             nr=numel(self.Ilags{i});
-            d(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
+            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k1,self.Ilags{i}));
             j=j+nr;
         end
-        d(:,end)=self.(self.O)(k);
-        dsum=sum(d,2);
-        nank=isnan(dsum);
-        if any(nank)>0
+        o=self.(self.O)(k1);
+        xsum=sum(x,2);
+        nanx=isnan(xsum);
+        nano=isnan(o);
+        if any(nanx)>0 || any(nano)>0
             self.(warntype)('SignalsModel:InvalidSignalIndex','Invalid regressor values.');
         end
-        newk=k(~nank);
+        k_mask=true(size(k));
+        k_mask(shortk)=false;
+        regressorVector_mask=k_mask;
+        regressand_mask=k_mask;
+        regressorVector_mask(~shortk)=~nanx;
+        regressand_mask(~shortk)=~nano;
     end
     
     function updateStatMoments(self)

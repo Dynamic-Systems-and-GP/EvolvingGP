@@ -35,8 +35,9 @@ methods
 		self.hypOptim.iter=10;
 		self.forgetting.factor=1;
 		self.forgetting.type='none';
-		self.reducing.maxSize=100;
+		self.reducing.maxSize=NaN;
 		self.reducing.type='windowing';
+        self.reducing.indexLifes=NaN(signals.maxk,2);
     end
 
 	function resetActiveSet(self,default)    
@@ -74,7 +75,8 @@ methods
 	function include(self,k)
         k=k(:);
         
-        k=self.signals.isDataDefinedAt(k,'warning');
+        [RVmask,RSmask]=self.signals.filterUndefinedDataAt(k,'warning');
+        k=k(RVmask&RSmask);
         if isempty(k) return; end
         x=self.signals.getRegressorVectors(k);
         t=self.signals.getRegressand(k);
@@ -84,21 +86,32 @@ methods
 		self.BVt(end+1:end+N,:)=t;
 		self.BVtst(end+1:end+N,:)=k;
 		self.size=size(self.BVi,1);
+        
+        for i=1:length(k)
+            self.reducing.indexLifes(k(i),:)=[self.signals.time(k(i)),Inf];
+        end
+        
 	end
 	function [ymu,ys2]=predictAt(self,k)
         k=k(:);
-        try
-			xs=self.signals.getRegressorVectors(k);
-		catch err
-			if strcmp(err.identifier,'SignalsModel:InvalidSignalIndex')
-				ymu=inf(size(k));
-				ys2=inf(size(k));
-                return;
-			else
-				rethrow(err);
-			end
-        end
-        [ymu,ys2]=predict(self,xs);
+        ymu=NaN(length(k),1);
+        ys2=NaN(length(k),1);
+%         try
+            RVmask=self.signals.filterUndefinedDataAt(k,'warning');
+            newk=k(RVmask);
+%             ymu(~mask_k)=NaN;
+%             ys2(~mask_k)=NaN;
+			xs=self.signals.getRegressorVectors(newk);
+% 		catch err
+% 			if strcmp(err.identifier,'SignalsModel:InvalidSignalIndex')
+% 				ymu=inf(size(k));
+% 				ys2=inf(size(k));
+%                 return;
+% 			else
+% 				rethrow(err);
+% 			end
+%         end
+        [ymu(RVmask),ys2(RVmask)]=predict(self,xs);
     end
         
 	function [ymu,ys2]=predict(self,xs)
@@ -131,7 +144,7 @@ methods
 			  ns = size(xs,1);                                       % number of data points
 			  nperbatch = 1000;                       % number of data points per mini batch
 			  nact = 0;                       % number of already processed test data points
-			  ymu = zeros(ns,1); ys2 = ymu; fmu = ymu; fs2 = ymu;% lp = ymu;   % allocate mem
+              ymu = zeros(ns,1); ys2 = ymu; fmu = ymu; fs2 = ymu;% lp = ymu;   % allocate mem
 			  while nact<ns               % process minibatches of test cases to save memory
 				id = (nact+1):min(nact+nperbatch,ns);               % data points to process
 				kss = feval(cov{:}, hyp.cov, xs(id,:), 'diag');              % self-variance
@@ -148,7 +161,7 @@ methods
 				end
 				fs2(id) = max(fs2(id),0);   % remove numerical noise i.e. negative variances
 				% if nargin<9
-				  [~, ymu(id) ys2(id)] = lik(hyp.lik, [], fmu(id), fs2(id));
+				  [~, ymu(id), ys2(id)] = lik(hyp.lik, [], fmu(id), fs2(id));
 				% else
 				  % [lp(id) ymu(id) ys2(id)] = lik(hyp.lik, ys(id), fmu(id), fs2(id));
 				% end
@@ -189,6 +202,11 @@ methods
 			self.inferPosterior();
 			%~ fprintf('reduced data timestamps: %s\n',num2str(timestamps(id)));				
 			fprintf('                worsest information gain element is at k-%d step with value (%d)\n' ,max(self.BVtst)-informationGain(end,2),informationGain(end,1));
+
+            for i=1:length(id)
+                self.reducing.indexLifes(id(i),2)=self.signals.time(id(i));
+            end
+            
 		end
 		self.size=size(self.BVi,1);
 	end
@@ -245,7 +263,8 @@ methods
 				informationGain(:,1)=D1(D1indices,1);
 				%~ [min(D1(:,1)),min(informationGain(:,1))]
 			case 'linearindependence'
-			% sorts the elements of active set by ascending euclid distance between them
+			% sorts the elements of active set by ascending linear
+			% independence in RKHS
 				[mu,se2]=self.predict(self.BVi);
 				informationGain(:,1)=sqrt(se2);
 			case 'windowing'
@@ -273,7 +292,7 @@ methods
 			case 'linear'
 				s=informationGain(:,1)-self.forgetting.factor*(timestampnow-informationGain(:,2));
 			case 'exponential'
-				s=informationGain(:,1)*self.forgetting.factor^(timestampnow-informationGain(:,2));
+				s=informationGain(:,1).*self.forgetting.factor.^(timestampnow-informationGain(:,2));
 			case 'none'
 				s=informationGain(:,1);
 		end
