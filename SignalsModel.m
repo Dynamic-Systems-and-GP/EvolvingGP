@@ -34,10 +34,18 @@ methods
 		%~ end
 	end
 	
-	function [x]=getRegressorVectors(self,k)
+	function [x]=getRegressorVectors(self,k,varargin)
 		if nargin==1 k=self.k; end;
+        opt=0;
+        if (nargin==3 && strcmpi(varargin{1},'force')) opt=1; end 
         if isempty(k) error('SignalsModel:getRegressorVectors','Empty time-step vector k'); return; end;
-		assert(min(k)>self.maxlag,'SignalsModel:InvalidSignalIndex','Too small time-step. The regressor vector requires lagged values at/before time-step k=0');
+        
+		if opt==0
+           assert(min(k)>self.maxlag,'SignalsModel:InvalidSignalIndex','Too small time-instant. The regressor vector requires lagged values time-instant k=>0');
+        else
+           k(k<=self.maxlag)=[]; 
+        end
+        
 		k=k(:);
 		n=length(k);
 		x=NaN(n,self.Nregressors);
@@ -50,11 +58,11 @@ methods
             end
             j=j+nr;
         end
-        if any(isnan(x))
+        if any(any(isnan(x))) && opt==0
             error('SignalsModel:InvalidSignalIndex','Invalid regressor values.');
         end
-		
-	end
+    end
+    
 	function [t]=getRegressand(self,k)
 		if nargin==1 k=self.k; end;
 		k=k(:);
