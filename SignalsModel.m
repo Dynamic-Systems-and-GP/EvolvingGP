@@ -162,8 +162,10 @@ methods
        %select only signal segments without NaN values
        for i=1:self.Ninputs
            notNaNs=~isnan(self.(self.I{i}));
-           self.mean.(self.I{i})=mean(self.(self.I{i})(notNaNs));
-           self.std.(self.I{i})=std(self.(self.I{i})(notNaNs));
+           if sum(notNaNs)>1
+             self.mean.(self.I{i})=mean(self.(self.I{i})(notNaNs));
+             self.std.(self.I{i})=std(self.(self.I{i})(notNaNs));
+           end
        end
     end
     
