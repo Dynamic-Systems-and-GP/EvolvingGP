@@ -92,7 +92,7 @@ methods
         end
         
 	end
-	function [ymu,ys2]=predictAt(self,k)
+	function [ymu,ys2]=predictAt(self,k,varargin)
         k=k(:);
         ymu=NaN(length(k),1);
         ys2=NaN(length(k),1);
@@ -111,10 +111,10 @@ methods
 % 				rethrow(err);
 % 			end
 %         end
-        [ymu(RVmask),ys2(RVmask)]=predict(self,xs);
+        [ymu(RVmask),ys2(RVmask)]=predict(self,xs,varargin);
     end
         
-	function [ymu,ys2]=predict(self,xs)
+	function [ymu,ys2]=predict(self,xs,varargin)
         if self.size==0 ymu=Inf;ys2=Inf; return; end
 		post=self.post;
 		cov=self.cov;
@@ -166,7 +166,19 @@ methods
 				  % [lp(id) ymu(id) ys2(id)] = lik(hyp.lik, ys(id), fmu(id), fs2(id));
 				% end
 				nact = id(end);          % set counter to index of last processed data point
-			  end
+              end
+        catch
+            warning('prediction failed.');
+        end
+        
+        if nargin==3
+           if isempty(varargin{1})
+                
+           elseif strcmpi(varargin{1},'normalized') || strcmpi(varargin{1},'n')
+               return;
+           else
+               error(['unknown option: ' varargin{1}]);
+           end
         end
         
         ymu=ymu*self.signals.std.(self.signals.O)+self.signals.mean.(self.signals.O);
@@ -174,12 +186,16 @@ methods
 	end
 	
 	function optimizePrior(self)
-		if isempty(self.BVi) return; end
-		if self.hypOptim.enable==1
+		if isempty(self.BVi)
+            return;
+        end
+        if self.hypOptim.enable==1
 			[self.hyp, nlZ] = minimize(self.hyp, @gp, self.hypOptim.iter,...
 				self.inf,self.mean, self.cov,  self.lik,self.BVi,self.BVt);
 			self.inferPosterior();
-		end
+        else
+           warning('Hyperparameter optimization is configured to be disabled! Nothing to be done. Leaving...');
+        end
 	end	
 	
 	function reduce(self,informationGain)
