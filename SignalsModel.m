@@ -50,7 +50,9 @@ methods
 		n=length(k);
 		x=NaN(n,self.Nregressors);
 		j=1;
+        inputs_without_regressors=cellfun(@isempty,self.Ilags);
         for i=1:self.Ninputs
+            if inputs_without_regressors(i)==1   continue;       end
             nr=numel(self.Ilags{i});
             x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
             if self.normalize==1
@@ -138,7 +140,9 @@ methods
 		n=length(k1);
 		x=NaN(n,self.Nregressors);
 		j=1;
+        inputs_without_regressors=cellfun(@isempty,self.Ilags);
         for i=1:self.Ninputs
+            if (inputs_without_regressors(i)==1)   continue; end
             nr=numel(self.Ilags{i});
             x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k1,self.Ilags{i}));
             j=j+nr;
