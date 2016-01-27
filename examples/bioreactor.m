@@ -21,7 +21,9 @@ es.setInputs(inps);
 es.setOutput('y');			
 
 %since we already defined whole input signal u, we define it again inside the signals object:
-es.u=u(:);
+%WARNING: CHANGED DEFINITION OF SIGNALS
+% signals now contain two columns. one for mean, second for variances (default zero)...
+es.u(:,1)=u(:);
 
 %Allocate additional two signals to object 'es'. To store predicted model (mu, se2).
 %We specifically want additional signals. They will be used for storing predictions of our model.
@@ -70,13 +72,13 @@ for k=1:N
 		e.inferPosterior();			% calculate all vectors for fast prediction, e.g., the covariance inverse
 		e.reduce();					% reduce the active set. The method verifies the size of active set by itself
 	end
-	proc.setu(es.u(k));				% apply the current input signal value to the process
+	proc.setu(es.u(k,1));				% apply the current input signal value to the process
 end
 
 ax(1)=subplot(2,1,1);
-plot(1:N,es.y,'b',1:N-1,es.yp_mu(2:end),'g');
+plot(1:N,es.y(:,1),'b',1:N-1,es.yp_mu(2:end),'g');
 ax(2)=subplot(2,1,2);
-plot(es.u);
+plot(es.u(:,1));
 linkaxes(ax,'x');
 
 proc.delete();
