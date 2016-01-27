@@ -68,6 +68,11 @@ methods
 		if isempty(self.BVi) return; end
 		[self.post,nlZ]=feval(self.inf{:},self.hyp, self.mean, self.cov, self.lik{1}, self.BVi, self.BVt);
 		self.logLikelihood=-nlZ;
+		
+		K = feval(egp.cov{:},egp.hyp.cov,egp.BVi);
+		L = chol(K + exp(2*egp.hyp.lik)*eye(length(egp.BVi)))';
+		self.post.invQ = L'\(L\eye(length(egp.BVi)));
+		self.post.beta=L'\(L\egp.BVt);
     end
 	
     
@@ -101,7 +106,7 @@ methods
             newk=k(RVmask);
 %             ymu(~mask_k)=NaN;
 %             ys2(~mask_k)=NaN;
-			xs=self.signals.getRegressorVectors(newk);
+			[xs,vs]=self.signals.getRegressorVectors(newk);
 % 		catch err
 % 			if strcmp(err.identifier,'SignalsModel:InvalidSignalIndex')
 % 				ymu=inf(size(k));
@@ -111,7 +116,28 @@ methods
 % 				rethrow(err);
 % 			end
 %         end
-        [ymu(RVmask),ys2(RVmask)]=predict(self,xs,varargin);
+		if any(vs)
+			[ymu(RVmask),ys2(RVmask)]=propagate(self,xs,diag());
+		else
+			for i=1:length(k)
+				maskids=find(RVmask);
+				[ymu(maskids(i)),ys2(maskids(i))]=predict(self,xs(i,:)',diag(vs(i,:)));
+			end
+		end
+
+        if nargin==3
+           if isempty(varargin{1})
+                
+           elseif strcmpi(varargin{1},'normalized') || strcmpi(varargin{1},'n')
+               return;
+           else
+               error(['unknown option: ' varargin{1}]);
+           end
+        end
+        
+        ymu=ymu*self.signals.std.(self.signals.O)+self.signals.mean.(self.signals.O);
+        ys2=ys2*(self.signals.std.(self.signals.O)^2);
+        		
     end
         
 	function [ymu,ys2]=predict(self,xs,varargin)
@@ -171,18 +197,6 @@ methods
             warning('prediction failed.');
         end
         
-        if nargin==3
-           if isempty(varargin{1})
-                
-           elseif strcmpi(varargin{1},'normalized') || strcmpi(varargin{1},'n')
-               return;
-           else
-               error(['unknown option: ' varargin{1}]);
-           end
-        end
-        
-        ymu=ymu*self.signals.std.(self.signals.O)+self.signals.mean.(self.signals.O);
-        ys2=ys2*(self.signals.std.(self.signals.O)^2);
 	end
 	
 	function optimizePrior(self)
@@ -326,29 +340,115 @@ methods
          end
          new.signals = self.signals.copy();
     end
-    end
+  
+  
+  
+	function [m, S2] = propagate(self, muX, SigX)
+		% Computes the predictive mean and variance at teh test input with
+		% Gaussian distribution for the squared exponential covariance function.
+		% Input: 
+		% * hyp      ... optimized hyperparameters 
+		% * inf      ... the function specifying the inference method 
+		% * mean     ... the prior mean function
+		% * cov      ... the specified covariance function, see help covFun for more info 
+		% * lik      ... the likelihood function
+		% * invQ     ... the inverse of the data covariance matrix
+		% * input    ... the input part of the training data,  NxD matrix
+		% * target   ... the output part of the training data (ie. target), Nx1 vector 
+		% * muX      ... the D by 1 test input
+		% * SigX     ... the covariance of the test input (OPTIONAL)
+		%
+		hyp=self.hyp;
+		inf=self.inf;
+		mean=self.mean;
+		cov=self.cov;
+		lik=self.lik;
+		invQ=self.post.invQ;
+		input=self.BVi;
+		target=self.BVt;
+		
+		beta=self.post.beta;
+		
+		[n, D] = size(input); % the number of training cases and dimension of input space
+		[nn, D] = size(muX);  % the number of test cases and dimension of input space
+
+		% input validation
+
+		[ is_valid, hyp, inf, mean, cov, lik, msg ] = validate( hyp, inf, mean, cov, lik, D);
+
+		if ~isequal(cov,{@covSEard}) 
+			error(strcat([fun_name,': function can only be called with the', ...
+				' covariance function ''covSEard'' '])); 
+		end
+
+		if ~isequal(lik,{@likGauss}) 
+			error(strcat([fun_name,': function can only be called with the', ...
+				' likelihood function ''likGauss'', where hyp.lik parameter is log(sn)'])); 
+		end 
+
+
+		X=[-2*hyp.cov(1:end-1);2*hyp.cov(end);2*hyp.lik]; % adapt hyperparameters to local format
+		expX = exp(X);        % exponentiate the hyperparameters once and for all
+
+		%~ beta = invQ*target;
+
+		% Covariance between training and test inputs ...
+
+		a = zeros(n,nn);
+		for d = 1:D
+		  a = a + (repmat(input(:,d),1,nn)-repmat(muX(:,d)',n,1)).^2*expX(d);
+		end
+		a = expX(D+1)*exp(-0.5*a);
+
+		% Covariance between the test input and themselves 
+		b = expX(D+1);   
+
+		% Predictive mean  and variance (test input including noise variance)
+		m = a'*beta;
+		S2 = b - sum(a.*(invQ*a),1)'  + expX(D+2);
+
+		if  nargin > 9 % random test input
+			
+			L = sum(diag(SigX)~=0); % number of stochastic dimensions (non zero variances)
+			if (L==0)
+				return;
+			end
+			% little things to do before we start
+			rangeL = D-L+1:D;
+			rangeC = [1:rangeL(1)-1 rangeL(end)+1:D];
+			
+			SigX = SigX(rangeL,rangeL);
+			muXL = muX(:,rangeL);
+			muXC = muX(:,rangeC);
+			inputL = input(:,rangeL);
+			inputC = input(:,rangeC);
+			
+			invLL = diag(expX(rangeL));
+			invLC = diag(expX(rangeC));
+			invS = inv(SigX);
+			invC = (invLL+invS);    
+			invSmuX = invS*muXL';
+			t1 = muXL*invSmuX;
+			c = inv(invC)*(invLL*inputL'+repmat(invSmuX,1,n));
+			t2 = sum(inputL.*(inputL*invLL),2);
+			t3 = sum(c.*(invC*c),1)';
+			I = (1/sqrt(det(invLL*SigX+eye(L))))*exp(-0.5*(t1+t2-t3));    
+			CC = exp(-.5*(sum((inputC-repmat(muXC,n,1)).*((inputC-repmat(muXC,n,1))*invLC),2)));
+			m = b.*(CC.*I)'*beta;
+			
+			invD = 2*invLL+invS;
+			[kk1,kk2]=meshgrid(1:n);
+			T1 = repmat(inputL,n,1)+inputL(reshape(kk1,1,n^2),:);
+			invLT1 = T1*invLL;
+			d = invD\(invLT1'+repmat(invSmuX,1,n^2));
+			T3 = reshape(sum(d.*(invD*d),1),n,n);
+			I2 = (1/sqrt(det(2*invLL*SigX+eye(L))))*exp(-0.5*(t1+repmat(t2,1,n)+repmat(t2',n,1)-T3));
+			
+			CCC = CC*CC';
+			S2 = b - b^2*sum(sum((invQ-beta*beta').*(CCC.*I2))) - m^2 + expX(D+2); % including noise variance
+		   
+		end
+	end
 
 
 end
-
-
-
-
-	%~ egp.Ts=Ts; %->to dyn
-    %~ egp.lambda=lambda; %-> MPC control
-    %~ egp.eta=eta; %-> MPC control
-    %~ egp.rho=rho; %-> MPC control
-    %~ egp.rhoT=rhoT; %-> MPC control
-    %~ egp.RegulatorEProfile=RegulatorEProfile; %-> MPC control
-    %~ egp.RegulatorVProfile=RegulatorVProfile; %-> MPC control
-    %~ egp.RegulatorUProfile=RegulatorUProfile; %-> MPC control
-    %~ egp.uexp=uexp; %-> MPC control
-
-    %~ egp.msteps=msteps;%% -> MPC control
-    %~ egp.upd_steps=upd_steps; %% -> to dyn, specific for update condition
-    
-    %~ egp.udelta=process.udelta; %% lacks impl. for multi-input
-    %~ egp.umean=process.umean; %% lacks impl. for multi-input
-    %~ egp.ydelta=process.ydelta; %% lacks impl. for multi-output?
-    %~ egp.ymean=process.ymean; %% lacks impl. for multi-output?
-    %~ egp.BVt_id=[];%% -> change name to timestamps: egp.BVtst

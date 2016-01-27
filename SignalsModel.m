@@ -34,7 +34,7 @@ methods
 		%~ end
 	end
 	
-	function [x]=getRegressorVectors(self,k,varargin)
+	function [x,v]=getRegressorVectors(self,k,varargin)
 		if nargin==1 k=self.k; end;
         opt=0;
         if (nargin==3 && strcmpi(varargin{1},'force')) opt=1; end 
@@ -49,14 +49,17 @@ methods
 		k=k(:);
 		n=length(k);
 		x=NaN(n,self.Nregressors);
+		v=NaN(n,self.Nregressors);
 		j=1;
         inputs_without_regressors=cellfun(@isempty,self.Ilags);
         for i=1:self.Ninputs
             if inputs_without_regressors(i)==1   continue;       end
             nr=numel(self.Ilags{i});
-            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
+            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}),1);
+            v(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}),2);
             if self.normalize==1
                 x(:,j:j+nr-1)=(x(:,j:j+nr-1)-self.mean.(self.I{i}))./self.std.(self.I{i});
+                v(:,j:j+nr-1)= v(:,j:j+nr-1)./(self.std.(self.I{i}).^2);
             end
             j=j+nr;
         end
@@ -69,7 +72,7 @@ methods
 		if nargin==1 k=self.k; end;
 		k=k(:);
 		n=length(k);
-		t=self.(self.O)(k);
+		t=self.(self.O)(k,1);
         if self.normalize==1
             t=(t-self.mean.(self.O))./self.std.(self.O);
         end
@@ -94,7 +97,7 @@ methods
 			addprop(self,signalnames{i});
 			self.I{i}=signalnames{i};
 			self.Ilags{i}=signaldelays{i};
-			self.(signalnames{i})=NaN(self.maxk,1);
+			self.(signalnames{i})=[NaN(self.maxk,1), zeros(self.maxk,1)]; % first column is mean, second is variance
             self.mean.(signalnames{i})=0;
             self.std.(signalnames{i}) =1;
 		end
@@ -108,7 +111,7 @@ methods
 		% set the output (target) signal for modelling
 		if ~isprop(self,output)
 			addprop(self,output);
-			self.(output)=NaN(self.maxk,1);
+			self.(output)=NaN(self.maxk,2);
             self.mean.(output)=0;
             self.std.(output) =1;
 		end
@@ -144,10 +147,10 @@ methods
         for i=1:self.Ninputs
             if (inputs_without_regressors(i)==1)   continue; end
             nr=numel(self.Ilags{i});
-            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k1,self.Ilags{i}));
+            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k1,self.Ilags{i}),1);
             j=j+nr;
         end
-        o=self.(self.O)(k1);
+        o=self.(self.O)(k1,1);
         xsum=sum(x,2);
         nanx=isnan(xsum);
         nano=isnan(o);
@@ -165,10 +168,10 @@ methods
     function updateStatMoments(self)
        %select only signal segments without NaN values
        for i=1:self.Ninputs
-           notNaNs=~isnan(self.(self.I{i}));
+           notNaNs=~isnan(self.(self.I{i}),1);
            if sum(notNaNs)>1
-             self.mean.(self.I{i})=mean(self.(self.I{i})(notNaNs));
-             self.std.(self.I{i})=std(self.(self.I{i})(notNaNs));
+             self.mean.(self.I{i})=mean(self.(self.I{i})(notNaNs,1));
+             self.std.(self.I{i})=std(self.(self.I{i})(notNaNs,1));
            end
        end
     end
