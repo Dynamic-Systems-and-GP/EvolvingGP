@@ -147,7 +147,7 @@ methods
         for i=1:self.Ninputs
             if (inputs_without_regressors(i)==1)   continue; end
             nr=numel(self.Ilags{i});
-            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k1,self.Ilags{i}),1);
+            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k1,self.Ilags{i}));
             j=j+nr;
         end
         o=self.(self.O)(k1,1);
@@ -168,7 +168,7 @@ methods
     function updateStatMoments(self)
        %select only signal segments without NaN values
        for i=1:self.Ninputs
-           notNaNs=~isnan(self.(self.I{i}),1);
+           notNaNs=~isnan(self.(self.I{i})(:,1));
            if sum(notNaNs)>1
              self.mean.(self.I{i})=mean(self.(self.I{i})(notNaNs,1));
              self.std.(self.I{i})=std(self.(self.I{i})(notNaNs,1));
