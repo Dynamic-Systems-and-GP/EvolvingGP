@@ -116,13 +116,13 @@ classdef EGP < handle
             % 				rethrow(err);
             % 			end
             %         end
-            if any(vs)
-                [ymu(RVmask),ys2(RVmask)]=propagate(self,xs,diag());
-            else
-                for i=1:length(k)
+            if any(any(vs))
+                for i=1:length(newk)
                     maskids=find(RVmask);
-                    [ymu(maskids(i)),ys2(maskids(i))]=predict(self,xs(i,:)',diag(vs(i,:)));
+                    [ymu(maskids(i)),ys2(maskids(i))]=propagate(self,xs(i,:),diag(vs(i,:)));
                 end
+            else
+                [ymu(RVmask),ys2(RVmask)]=predict(self,xs);
             end
             
             if nargin==3
@@ -355,7 +355,7 @@ classdef EGP < handle
             % * invQ     ... the inverse of the data covariance matrix
             % * input    ... the input part of the training data,  NxD matrix
             % * target   ... the output part of the training data (ie. target), Nx1 vector
-            % * muX      ... the D by 1 test input
+            % * muX      ... the 1 by D test input
             % * SigX     ... the covariance of the test input (OPTIONAL)
             %
             hyp=self.hyp;
@@ -367,6 +367,11 @@ classdef EGP < handle
             input=self.BVi;
             target=self.BVt;
             
+            if iscell(cov) cov=str2func(cov{1}); end
+            if iscell(inf) inf=str2func(inf{1}); end
+            if iscell(lik) lik=str2func(lik{1}); end
+            if iscell(mean) mean=str2func(mean{1}); end
+            
             beta=self.post.beta;
             
             [n, D] = size(input); % the number of training cases and dimension of input space
@@ -375,6 +380,7 @@ classdef EGP < handle
             % input validation
             
             [ is_valid, hyp, inf, mean, cov, lik, msg ] = validate( hyp, inf, mean, cov, lik, D);
+            
             
             if ~isequal(cov,{@covSEard})
                 error(strcat([fun_name,': function can only be called with the', ...
@@ -407,15 +413,17 @@ classdef EGP < handle
             m = a'*beta;
             S2 = b - sum(a.*(invQ*a),1)'  + expX(D+2);
             
-            if  nargin > 9 % random test input
+            if  nargin > 2 % nondeterministic test input
                 
                 L = sum(diag(SigX)~=0); % number of stochastic dimensions (non zero variances)
                 if (L==0)
                     return;
                 end
-                % little things to do before we start
-                rangeL = D-L+1:D;
-                rangeC = [1:rangeL(1)-1 rangeL(end)+1:D];
+                % split regressor to deterministic quantities and
+                % nondeterministic quantities
+                rangeL = find(diag(SigX)~=0);
+                rangeC = find(diag(SigX)==0);
+%                 find(diag(SigX)~=0)
                 
                 SigX = SigX(rangeL,rangeL);
                 muXL = muX(:,rangeL);

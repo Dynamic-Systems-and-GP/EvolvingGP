@@ -55,8 +55,9 @@ methods
         for i=1:self.Ninputs
             if inputs_without_regressors(i)==1   continue;       end
             nr=numel(self.Ilags{i});
-            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}),1);
-            v(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}),2);
+            x(:,j:j+nr-1)=self.(self.I{i})(bsxfun(@minus,k,self.Ilags{i}));
+            variances=self.(self.I{i})(:,2);
+            v(:,j:j+nr-1)=variances(bsxfun(@minus,k,self.Ilags{i}));
             if self.normalize==1
                 x(:,j:j+nr-1)=(x(:,j:j+nr-1)-self.mean.(self.I{i}))./self.std.(self.I{i});
                 v(:,j:j+nr-1)= v(:,j:j+nr-1)./(self.std.(self.I{i}).^2);
